@@ -1,0 +1,40 @@
+# owncode demo - real CLI output on a SYNTHETIC fixture repo
+# (fixture built with real git commits in this script; the repo
+#  is labelled synthetic - it is not a real project)
+
+$ owncode audit .
+file  verdict  human%  header  signals
+src/handwritten.ts                         OWNABLE     100    yes    -
+src/helper.ts                              AT-RISK     0      yes    agents:claude
+src/pure-ai.ts                             UNPROTECTED 0      no     agents:claude no-header
+vendor/legacy.js                           AT-RISK     100    yes    attribution-gap
+
+summary: OWNABLE 1 | AT-RISK 2 | UNPROTECTED 1 | UNKNOWN 0 | attributable 100% (4/4 files)
+Verdicts are heuristics under US Copyright Office guidance (Part 2, 29 Jan 2025). The UK and some other jurisdictions protect machine-generated works. Not legal advice.
+exit: 1
+
+$ owncode explain src/pure-ai.ts
+file: src/pure-ai.ts
+verdict: UNPROTECTED
+human ratio: 0% (0 human / 1 commits, 1 AI-attributed)
+agents: claude
+licence header: no
+agent path: no
+vendored: no
+human edit after AI: no
+reasons:
+  - 100% of commits are AI-attributed and no human author appears in this file's history
+  - no licence header
+  - under US Copyright Office guidance (Part 2, 29 Jan 2025) pure AI output is likely uncopyrightable in the US; the UK and some other jurisdictions protect machine-generated works
+evidence commits (newest first):
+  6747345 Claude <noreply@anthropic.com> - Generate fib module
+    Generated-By: Claude Code
+Verdicts are heuristics under US Copyright Office guidance (Part 2, 29 Jan 2025). The UK and some other jurisdictions protect machine-generated works. Not legal advice.
+
+# CI gate: save a baseline, add one new pure-AI file, re-check
+$ owncode audit . --save-baseline baseline.json
+$ owncode check --baseline baseline.json
+check: FAIL - 1 new risky file(s) vs baseline:
+  UNPROTECTED src/new-ai.ts (100% of commits are AI-attributed and no human author appears in this file's history)
+Verdicts are heuristics under US Copyright Office guidance (Part 2, 29 Jan 2025). The UK and some other jurisdictions protect machine-generated works. Not legal advice.
+exit: 1
